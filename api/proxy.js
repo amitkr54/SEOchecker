@@ -2,7 +2,7 @@
 // Vercel Serverless Function to fetch HTML from a URL
 // This bypasses CORS restrictions by running on the server side
 
-import fetch from 'node-fetch';
+
 
 export default async function handler(request, response) {
     // Enable CORS
