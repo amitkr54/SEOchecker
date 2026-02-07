@@ -218,7 +218,10 @@ function initTool() {
     async function fetchPageSpeed(url) {
         const apiUrl = `${PAGESPEED_API}?url=${encodeURIComponent(url)}&strategy=mobile&category=PERFORMANCE&key=${API_KEY}`;
         const res = await fetch(apiUrl);
-        if (!res.ok) throw new Error('Failed to measure performance.');
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error?.message || 'Failed to measure performance.');
+        }
         return await res.json();
     }
 
