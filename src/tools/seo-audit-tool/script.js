@@ -180,14 +180,22 @@ function initTool() {
         auditBtn.disabled = true;
         urlInput.disabled = true;
 
-        try {
-            // Step 1: Fetch PageSpeed Data (Performance)
-            updateProgress(0);
-            const perfData = await fetchPageSpeed(url);
+        let perfData = null;
+        let htmlData = null;
 
-            // Step 2: Fetch HTML Content (On-Page/Tech)
+        try {
+            // Step 1: Fetch PageSpeed Data (Performance) - Optional
+            updateProgress(0);
+            try {
+                perfData = await fetchPageSpeed(url);
+            } catch (e) {
+                console.warn('PageSpeed failed:', e);
+                showToast(`Performance check skipped: ${e.message}`, 'warning');
+            }
+
+            // Step 2: Fetch HTML Content (On-Page/Tech) - Required
             updateProgress(1);
-            const htmlData = await fetchHtmlContent(url);
+            htmlData = await fetchHtmlContent(url);
 
             // Step 3: Analyze & Score
             updateProgress(2);
@@ -342,27 +350,38 @@ function initTool() {
 
         // --- 3. Performance ---
 
-        const perfScore = Math.round(perfData.lighthouseResult.categories.performance.score * 100);
+        if (perfData && perfData.lighthouseResult) {
+            const perfScore = Math.round(perfData.lighthouseResult.categories.performance.score * 100);
 
-        if (perfScore < 50) {
-            score -= 20;
-            checks.perf.push({ status: 'fail', msg: `Low Speed Score: ${perfScore}/100` });
-            issues.push('Critical speed issues. Optimize images and JS.');
-        } else if (perfScore < 90) {
-            score -= 10;
-            checks.perf.push({ status: 'warn', msg: `Average Speed Score: ${perfScore}/100` });
-            issues.push('Improve page load speed (LCP/CLS).');
+            if (perfScore < 50) {
+                score -= 20;
+                checks.perf.push({ status: 'fail', msg: `Low Speed Score: ${perfScore}/100` });
+                issues.push('Critical speed issues. Optimize images and JS.');
+            } else if (perfScore < 90) {
+                score -= 10;
+                checks.perf.push({ status: 'warn', msg: `Average Speed Score: ${perfScore}/100` });
+                issues.push('Improve page load speed (LCP/CLS).');
+            } else {
+                checks.perf.push({ status: 'pass', msg: `Excellent Speed Score: ${perfScore}/100` });
+            }
+
+            // Core Web Vitals Status
+            const audits = perfData.lighthouseResult.audits;
+            const lcp = audits['largest-contentful-paint']?.displayValue || 'N/A';
+            const cls = audits['cumulative-layout-shift']?.displayValue || 'N/A';
+
+            checks.perf.push({
+                status: audits['largest-contentful-paint']?.score >= 0.9 ? 'pass' : 'warn',
+                msg: `LCP: ${lcp}`
+            });
+            checks.perf.push({
+                status: audits['cumulative-layout-shift']?.score >= 0.9 ? 'pass' : 'warn',
+                msg: `CLS: ${cls}`
+            });
         } else {
-            checks.perf.push({ status: 'pass', msg: `Excellent Speed Score: ${perfScore}/100` });
+            checks.perf.push({ status: 'warn', msg: 'Performance data unavailable.' });
+            issues.push('Enable PageSpeed API or check your key for speed insights.');
         }
-
-        // Core Web Vitals Status
-        const audits = perfData.lighthouseResult.audits;
-        const lcp = audits['largest-contentful-paint'].displayValue;
-        const cls = audits['cumulative-layout-shift'].displayValue;
-
-        checks.perf.push({ status: audits['largest-contentful-paint'].score >= 0.9 ? 'pass' : 'warn', msg: `LCP: ${lcp}` });
-        checks.perf.push({ status: audits['cumulative-layout-shift'].score >= 0.9 ? 'pass' : 'warn', msg: `CLS: ${cls}` });
 
 
         // Final Score Calc
