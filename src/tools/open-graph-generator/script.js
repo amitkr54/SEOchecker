@@ -7,7 +7,7 @@ import '../../styles/main.css';
 import { createHeader, initHeader, headerStyles } from '../../components/Header.js';
 import { createFooter, footerStyles } from '../../components/Footer.js';
 import { createAdUnit, adStyles } from '../../components/AdUnit.js';
-import { showToast } from '../../utils/common.js';
+import { showToast, formatURL } from '../../utils/common.js';
 
 // Initialize page
 function initPage() {
@@ -259,7 +259,15 @@ function initTool() {
     function updatePreviews() {
         const title = ogTitle.value || 'Your Title Here';
         const desc = ogDesc.value || 'Your description will appear here...';
-        const urlRaw = ogUrl.value || 'example.com';
+        let urlRaw = ogUrl.value.trim();
+
+        if (urlRaw) {
+            const normalized = formatURL(urlRaw);
+            if (normalized) urlRaw = normalized;
+        }
+
+        if (!urlRaw) urlRaw = 'example.com';
+
         const siteName = ogSiteName.value || 'Site Name';
 
         // Clean URL for display

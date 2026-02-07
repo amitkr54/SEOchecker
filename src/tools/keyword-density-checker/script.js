@@ -191,11 +191,19 @@ function initTool() {
 
         try {
             if (isUrlMode) {
-                const url = inputUrl.value.trim();
+                let url = inputUrl.value.trim();
                 if (!url) {
                     showToast('Please enter a URL', 'error');
                     return;
                 }
+
+                // Normalize URL
+                url = formatURL(url);
+                if (!url) {
+                    showToast('Invalid URL format', 'error');
+                    return;
+                }
+                inputUrl.value = url;
                 text = await fetchUrlContent(url);
             } else {
                 text = inputText.value.trim();

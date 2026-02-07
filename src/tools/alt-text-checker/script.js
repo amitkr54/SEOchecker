@@ -7,7 +7,7 @@ import '../../styles/main.css';
 import { createHeader, initHeader, headerStyles } from '../../components/Header.js';
 import { createFooter, footerStyles } from '../../components/Footer.js';
 import { createAdUnit, adStyles } from '../../components/AdUnit.js';
-import { showToast, escapeHTML, downloadFile } from '../../utils/common.js';
+import { showToast, escapeHTML, downloadFile, formatURL } from '../../utils/common.js';
 
 // Initialize page
 function initPage() {
@@ -176,12 +176,19 @@ function initChecker() {
   sampleBtn.addEventListener('click', () => loadSample());
 
   async function checkFromUrl() {
-    const url = urlInput.value.trim();
-
+    let url = urlInput.value.trim();
     if (!url) {
-      showToast('Please enter a URL', 'warning');
+      showToast('Please enter a URL to check', 'error');
       return;
     }
+
+    // Normalize URL
+    url = formatURL(url);
+    if (!url) {
+      showToast('Invalid URL format', 'error');
+      return;
+    }
+    urlInput.value = url; // Show normalized URL to user
 
     checkUrlBtn.disabled = true;
     checkUrlBtn.textContent = 'Fetching via Proxy...';

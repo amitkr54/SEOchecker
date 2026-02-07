@@ -7,19 +7,19 @@ import '../../styles/main.css';
 import { createHeader, initHeader, headerStyles } from '../../components/Header.js';
 import { createFooter, footerStyles } from '../../components/Footer.js';
 import { createAdUnit, adStyles } from '../../components/AdUnit.js';
-import { showToast, downloadFile } from '../../utils/common.js';
+import { showToast, downloadFile, formatURL } from '../../utils/common.js';
 
 // Initialize page
 function initPage() {
-    const app = document.getElementById('app');
+  const app = document.getElementById('app');
 
-    // Inject styles
-    document.head.insertAdjacentHTML('beforeend', headerStyles);
-    document.head.insertAdjacentHTML('beforeend', footerStyles);
-    document.head.insertAdjacentHTML('beforeend', adStyles);
+  // Inject styles
+  document.head.insertAdjacentHTML('beforeend', headerStyles);
+  document.head.insertAdjacentHTML('beforeend', footerStyles);
+  document.head.insertAdjacentHTML('beforeend', adStyles);
 
-    // Build page content
-    app.innerHTML = `
+  // Build page content
+  app.innerHTML = `
     ${createHeader()}
     
     <main>
@@ -129,103 +129,106 @@ Disallow:</pre>
     ${createFooter()}
   `;
 
-    // Initialize header
-    initHeader();
+  // Initialize header
+  initHeader();
 
-    // Initialize tool
-    initGenerator();
+  // Initialize tool
+  initGenerator();
 }
 
 function initGenerator() {
-    const userAgent = document.getElementById('userAgent');
-    const crawlDelay = document.getElementById('crawlDelay');
-    const sitemap = document.getElementById('sitemap');
-    const disallow = document.getElementById('disallow');
-    const outputCode = document.getElementById('outputCode');
+  const userAgent = document.getElementById('userAgent');
+  const crawlDelay = document.getElementById('crawlDelay');
+  const sitemap = document.getElementById('sitemap');
+  const disallow = document.getElementById('disallow');
+  const outputCode = document.getElementById('outputCode');
 
-    // Buttons
-    const generateBtn = document.getElementById('generateBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const copyBtn = document.getElementById('copyBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
+  // Buttons
+  const generateBtn = document.getElementById('generateBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const copyBtn = document.getElementById('copyBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
 
-    // Live update on change
-    [userAgent, crawlDelay, sitemap, disallow].forEach(el => {
-        el.addEventListener('input', generateRobotsTxt);
+  // Live update on change
+  [userAgent, crawlDelay, sitemap, disallow].forEach(el => {
+    el.addEventListener('input', generateRobotsTxt);
+  });
+
+  resetBtn.addEventListener('click', () => {
+    userAgent.value = '*';
+    crawlDelay.value = '';
+    sitemap.value = '';
+    disallow.value = '';
+    generateRobotsTxt();
+    showToast('Form reset', 'info');
+  });
+
+  generateBtn.addEventListener('click', () => {
+    generateRobotsTxt();
+    const codeSection = document.querySelector('.output-column');
+    codeSection.scrollIntoView({ behavior: 'smooth' });
+    showToast('Robots.txt generated!', 'success');
+  });
+
+  downloadBtn.addEventListener('click', () => {
+    const content = outputCode.textContent;
+    downloadFile(content, 'robots.txt', 'text/plain');
+    showToast('File downloaded', 'success');
+  });
+
+  copyBtn.addEventListener('click', () => {
+    const content = outputCode.textContent;
+    navigator.clipboard.writeText(content).then(() => {
+      showToast('Copied to clipboard', 'success');
     });
+  });
 
-    resetBtn.addEventListener('click', () => {
-        userAgent.value = '*';
-        crawlDelay.value = '';
-        sitemap.value = '';
-        disallow.value = '';
-        generateRobotsTxt();
-        showToast('Form reset', 'info');
-    });
+  function generateRobotsTxt() {
+    let content = '';
 
-    generateBtn.addEventListener('click', () => {
-        generateRobotsTxt();
-        const codeSection = document.querySelector('.output-column');
-        codeSection.scrollIntoView({ behavior: 'smooth' });
-        showToast('Robots.txt generated!', 'success');
-    });
+    // User Agent
+    content += `User-agent: ${userAgent.value}\n`;
 
-    downloadBtn.addEventListener('click', () => {
-        const content = outputCode.textContent;
-        downloadFile(content, 'robots.txt', 'text/plain');
-        showToast('File downloaded', 'success');
-    });
-
-    copyBtn.addEventListener('click', () => {
-        const content = outputCode.textContent;
-        navigator.clipboard.writeText(content).then(() => {
-            showToast('Copied to clipboard', 'success');
-        });
-    });
-
-    function generateRobotsTxt() {
-        let content = '';
-
-        // User Agent
-        content += `User-agent: ${userAgent.value}\n`;
-
-        // Crawl Delay
-        if (crawlDelay.value) {
-            content += `Crawl-delay: ${crawlDelay.value}\n`;
-        }
-
-        // Disallow
-        const disallowLines = disallow.value.split('\n');
-        let hasDisallow = false;
-
-        disallowLines.forEach(line => {
-            const path = line.trim();
-            if (path) {
-                content += `Disallow: ${path.startsWith('/') ? path : '/' + path}\n`;
-                hasDisallow = true;
-            }
-        });
-
-        // If nothing blocked, Explicit Allow or Empty Disallow?
-        // Standard practice: "Disallow:" means allow everything.
-        if (!hasDisallow && !crawlDelay.value) {
-            content += `Disallow:\n`;
-        }
-
-        // Sitemap
-        if (sitemap.value.trim()) {
-            content += `\nSitemap: ${sitemap.value.trim()}`;
-        }
-
-        outputCode.textContent = content;
+    // Crawl Delay
+    if (crawlDelay.value) {
+      content += `Crawl-delay: ${crawlDelay.value}\n`;
     }
+
+    // Disallow
+    const disallowLines = disallow.value.split('\n');
+    let hasDisallow = false;
+
+    disallowLines.forEach(line => {
+      const path = line.trim();
+      if (path) {
+        content += `Disallow: ${path.startsWith('/') ? path : '/' + path}\n`;
+        hasDisallow = true;
+      }
+    });
+
+    // If nothing blocked, Explicit Allow or Empty Disallow?
+    // Standard practice: "Disallow:" means allow everything.
+    if (!hasDisallow && !crawlDelay.value) {
+      content += `Disallow:\n`;
+    }
+
+    // Sitemap
+    let sitemapUrl = sitemap.value.trim();
+    if (sitemapUrl) {
+      const normalized = formatURL(sitemapUrl);
+      if (normalized) sitemapUrl = normalized;
+      content += `\nSitemap: ${sitemapUrl}`;
+    }
+
+    outputCode.textContent = content;
+  }
 }
 
 // Initialize
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initPage);
+  document.addEventListener('DOMContentLoaded', initPage);
 } else {
-    initPage();
+  initPage();
 }
 
 // Styles

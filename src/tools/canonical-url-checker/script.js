@@ -7,7 +7,7 @@ import '../../styles/main.css';
 import { createHeader, initHeader, headerStyles } from '../../components/Header.js';
 import { createFooter, footerStyles } from '../../components/Footer.js';
 import { createAdUnit, adStyles } from '../../components/AdUnit.js';
-import { showToast } from '../../utils/common.js';
+import { showToast, formatURL } from '../../utils/common.js';
 
 // Initialize page
 function initPage() {
@@ -126,12 +126,20 @@ function initTool() {
     });
 
     async function runCheck() {
-        const url = urlInput.value.trim();
+        let url = urlInput.value.trim();
 
         if (!url) {
             showToast('Please enter a valid URL', 'error');
             return;
         }
+
+        // Normalize URL
+        url = formatURL(url);
+        if (!url) {
+            showToast('Invalid URL format', 'error');
+            return;
+        }
+        urlInput.value = url; // Show normalized URL to user
 
         // Reset UI
         resultCard.classList.add('hidden');

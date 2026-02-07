@@ -7,7 +7,7 @@ import '../../styles/main.css';
 import { createHeader, initHeader, headerStyles } from '../../components/Header.js';
 import { createFooter, footerStyles } from '../../components/Footer.js';
 import { createAdUnit, adStyles } from '../../components/AdUnit.js';
-import { showToast } from '../../utils/common.js';
+import { showToast, formatURL } from '../../utils/common.js';
 
 const PAGESPEED_API = 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed';
 const API_KEY = 'AIzaSyCXtfM2OsYIXz9WOjHQ-6-1-pKHFciGDUs'; // User's API Key
@@ -171,13 +171,21 @@ function initTool() {
     });
 
     async function runTest() {
-        const url = urlInput.value.trim();
+        let url = urlInput.value.trim();
         const strategy = deviceType.value;
 
         if (!url) {
             showToast('Please enter a valid URL', 'error');
             return;
         }
+
+        // Normalize URL
+        url = formatURL(url);
+        if (!url) {
+            showToast('Invalid URL format', 'error');
+            return;
+        }
+        urlInput.value = url; // Show normalized URL to user
 
         // Reset UI
         resultCard.classList.add('hidden');

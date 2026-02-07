@@ -173,13 +173,20 @@ function initChecker() {
   });
 
   async function analyzeWebsite() {
-    const url = urlInput.value.trim();
-    const formattedURL = formatURL(url);
-
-    if (!formattedURL) {
+    let url = urlInput.value.trim();
+    if (!url) {
       showToast('Please enter a valid URL', 'error');
       return;
     }
+
+    // Normalize URL
+    url = formatURL(url);
+    if (!url) {
+      showToast('Invalid URL format', 'error');
+      return;
+    }
+    urlInput.value = url;
+    const formattedURL = url; // for consistency with existing code
 
     const device = document.querySelector('input[name="device"]:checked').value;
 
