@@ -1,0 +1,548 @@
+/**
+ * SEO Audit Tool - Main Script
+ * Comprehensive website SEO analysis
+*/
+
+import { metaChecks, headingChecks, imageChecks, performanceChecks, securityChecks, technicalChecks } from './checks.js';
+import { advancedChecks, analyticsChecks, structuredDataChecks, mobilityChecks, socialChecks, linkChecks } from './advanced-checks.js';
+import { exportToPDF } from './pdf-export.js';
+import { createCircularScore, circularScoreStyles } from '../../components/CircularScore.js';
+import { createIssuesList, issuesListStyles } from '../../components/IssuesList.js';
+import { createProgressBars, progressBarsStyles } from '../../components/ProgressBars.js';
+import { createTestResultCard, testResultCardStyles } from '../../components/TestResultCard.js';
+
+class SEOAuditor {
+  constructor() {
+    this.results = [];
+    this.score = 0;
+    this.url = '';
+    this.htmlContent = '';
+  }
+
+  async auditURL(url) {
+    try {
+      this.url = url;
+      this.showLoading();
+
+      // Validate URL
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        throw new Error('URL must start with http:// or https://');
+      }
+
+      // Fetch the webpage using CORS proxy
+      console.log('Fetching website:', url);
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+      const response = await fetch(proxyUrl);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch website: ${response.status}`);
+      }
+
+      this.htmlContent = await response.text();
+      console.log('HTML fetched, size:', (this.htmlContent.length / 1024).toFixed(2), 'KB');
+
+      // Parse HTML
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(this.htmlContent, 'text/html');
+
+      // Run all checks
+      await this.runAllChecks(doc, url);
+
+      // Calculate score
+      this.calculateScore();
+
+      // Display results
+      this.displayResults();
+
+      this.hideLoading();
+      this.showResults();
+
+    } catch (error) {
+      console.error('Audit failed:', error);
+      this.hideLoading();
+      alert(`Failed to audit website: ${error.message}\n\nPlease check:\n1. The URL is correct and accessible\n2. The website allows cross-origin requests\n3. You have an internet connection`);
+    }
+  }
+
+  async runAllChecks(doc, url) {
+    this.results = [];
+
+    console.log('Running SEO checks...');
+
+    // Meta Tags Checks (4 checks)
+    this.results.push(metaChecks.checkMetaTitle(doc));
+    this.results.push(metaChecks.checkMetaDescription(doc));
+    this.results.push(metaChecks.checkOpenGraph(doc));
+    this.results.push(metaChecks.checkKeywords(doc));
+
+    // Heading Structure Checks (3 checks)
+    this.results.push(headingChecks.checkH1Tags(doc));
+    this.results.push(headingChecks.checkH2Tags(doc));
+    this.results.push(headingChecks.checkHeadingHierarchy(doc));
+
+    // Image Optimization Checks (3 checks)
+    this.results.push(imageChecks.checkImageAltText(doc));
+    this.results.push(imageChecks.checkResponsiveImages(doc));
+    this.results.push(imageChecks.checkImageFormats(doc));
+
+    // Performance Checks (4 checks)
+    this.results.push(performanceChecks.checkHTTPRequests(doc));
+    this.results.push(performanceChecks.checkMinification(doc));
+    this.results.push(performanceChecks.checkPageSize(this.htmlContent));
+    this.results.push(performanceChecks.checkInlineCSS(doc));
+
+    // Security Checks (4 checks)
+    this.results.push(securityChecks.checkHTTPS(url));
+    const mixedContent = securityChecks.checkMixedContent(doc, url);
+    if (mixedContent) this.results.push(mixedContent);
+    this.results.push(securityChecks.checkDeprecatedHTML(doc));
+    this.results.push(securityChecks.checkEmailsInPlaintext(doc));
+
+    // Technical SEO Checks (5 checks)
+    this.results.push(technicalChecks.checkViewport(doc));
+    this.results.push(technicalChecks.checkLanguage(doc));
+    this.results.push(technicalChecks.checkFavicon(doc));
+    this.results.push(technicalChecks.checkCanonical(doc));
+    this.results.push(technicalChecks.checkRobotsMeta(doc));
+
+    // Filter out null results
+    this.results = this.results.filter(r => r !== null);
+
+    console.log(`Completed ${this.results.length} checks`);
+  }
+
+  calculateScore() {
+    const passed = this.results.filter(r => r.status === 'pass').length;
+    const total = this.results.length;
+    this.score = Math.round((passed / total) * 100);
+
+    console.log(`Score: ${this.score}/100 (${passed}/${total} checks passed)`);
+  }
+
+  displayResults() {
+    const resultsContainer = document.getElementById('audit-results');
+
+    // Count results by status
+    const failed = this.results.filter(r => r.status === 'warning' || r.status === 'error').length;
+    const warnings = this.results.filter(r => r.status === 'neutral').length;
+    const passed = this.results.filter(r => r.status === 'pass').length;
+
+    // Get high/medium priority issues
+    const issues = this.results
+      .filter(r => (r.priority === 'high' || r.priority === 'medium') && r.status !== 'pass')
+      .sort((a, b) => {
+        const priorityOrder = { high: 0, medium: 1, low: 2 };
+        return priorityOrder[a.priority] - priorityOrder[b.priority];
+      })
+      .map(r => ({
+        priority: r.priority,
+        text: r.description,
+        icon: '🔗'
+      }));
+
+    // Calculate category scores
+    const categories = this.getCategoryBreakdown();
+
+    resultsContainer.innerHTML = `
+      <div class="audit-results-container">
+        <!-- Header -->
+        <div class="results-header-section">
+          <div class="results-header-info">
+            <p class="report-time">Report generated ${new Date().toLocaleString()}</p>
+            <h2 class="results-url">${this.url}</h2>
+            <p class="results-tagline">Your general SEO Checkup Score</p>
+          </div>
+        </div>
+        
+        <!-- Score & Summary -->
+        <div class="results-summary-grid">
+          <div class="score-display">
+            ${createCircularScore(this.score, 100, 'SEO Score')}
+            <p class="score-description">
+              This webpage received an SEO score of <strong>${this.score} out of 100</strong>. 
+              Our analysis has identified <strong>${failed} SEO issues</strong> that can be addressed 
+              to further enhance your website's performance and improve its search engine visibility.
+            </p>
+          </div>
+          
+          <div class="progress-display">
+            ${createProgressBars({ failed, warnings, passed })}
+            
+            <div class="category-scores">
+              <h4>Category Breakdown</h4>
+              ${categories.map(cat => `
+                <div class="category-score-item">
+                  <span class="category-name">${cat.name}</span>
+                  <span class="category-score">${cat.score}/100</span>
+                  <span class="category-badge badge-${cat.status}">${cat.passed}/${cat.total}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Issues to Fix -->
+        ${issues.length > 0 ? `
+          <div class="issues-section">
+            ${createIssuesList(issues)}
+          </div>
+        ` : ''}
+        
+        <!-- Detailed Results -->
+        <div class="detailed-results-section">
+          <h3>Detailed Test Results</h3>
+          <p class="section-description">Click on each test to see detailed information and recommendations.</p>
+          
+          <div class="test-results-grid">
+            ${this.results.map(result => createTestResultCard(result)).join('')}
+          </div>
+        </div>
+        
+        <!-- Footer Actions -->
+        <div class="results-actions">
+          <button class="btn btn-primary" onclick="window.print()">
+            📄 Print Report
+          </button>
+          <button class="btn btn-secondary" onclick="location.reload()">
+            🔄 New Audit
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  getCategoryBreakdown() {
+    const metaResults = this.results.slice(0, 4);
+    const headingResults = this.results.slice(4, 7);
+    const imageResults = this.results.slice(7, 10);
+    const perfResults = this.results.slice(10, 14);
+    const secResults = this.results.slice(14, 18);
+    const techResults = this.results.slice(18);
+
+    const calcScore = (results) => {
+      const passed = results.filter(r => r.status === 'pass').length;
+      return results.length > 0 ? Math.round((passed / results.length) * 100) : 0;
+    };
+
+    return [
+      {
+        name: 'Meta Tags',
+        score: calcScore(metaResults),
+        passed: metaResults.filter(r => r.status === 'pass').length,
+        total: metaResults.length,
+        status: calcScore(metaResults) >= 75 ? 'success' : 'warning'
+      },
+      {
+        name: 'Headings',
+        score: calcScore(headingResults),
+        passed: headingResults.filter(r => r.status === 'pass').length,
+        total: headingResults.length,
+        status: calcScore(headingResults) >= 75 ? 'success' : 'warning'
+      },
+      {
+        name: 'Images',
+        score: calcScore(imageResults),
+        passed: imageResults.filter(r => r.status === 'pass').length,
+        total: imageResults.length,
+        status: calcScore(imageResults) >= 75 ? 'success' : 'warning'
+      },
+      {
+        name: 'Performance',
+        score: calcScore(perfResults),
+        passed: perfResults.filter(r => r.status === 'pass').length,
+        total: perfResults.length,
+        status: calcScore(perfResults) >= 75 ? 'success' : 'warning'
+      },
+      {
+        name: 'Security',
+        score: calcScore(secResults),
+        passed: secResults.filter(r => r.status === 'pass').length,
+        total: secResults.length,
+        status: calcScore(secResults) >= 75 ? 'success' : 'warning'
+      },
+      {
+        name: 'Technical',
+        score: calcScore(techResults),
+        passed: techResults.filter(r => r.status === 'pass').length,
+        total: techResults.length,
+        status: calcScore(techResults) >= 75 ? 'success' : 'warning'
+      }
+    ];
+  }
+
+  showLoading() {
+    document.getElementById('loading').classList.remove('hidden');
+    document.getElementById('results-section').classList.add('hidden');
+  }
+
+  hideLoading() {
+    document.getElementById('loading').classList.add('hidden');
+  }
+
+  showResults() {
+    document.getElementById('results-section').classList.remove('hidden');
+    // Smooth scroll to results
+    document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', () => {
+  // Inject component styles
+  document.head.insertAdjacentHTML('beforeend', circularScoreStyles);
+  document.head.insertAdjacentHTML('beforeend', issuesListStyles);
+  document.head.insertAdjacentHTML('beforeend', progressBarsStyles);
+  document.head.insertAdjacentHTML('beforeend', testResultCardStyles);
+
+  // Add page-specific styles
+  const pageStyles = `
+    <style>
+    .audit-page {
+      min-height: 100vh;
+      padding-bottom: 4rem;
+    }
+    
+    .hero-section {
+      padding: 3rem 0;
+      background: var(--bg-gradient);
+    }
+    
+    .hero-subtitle {
+      font-size: 1.125rem;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .audit-input-card {
+      background: white;
+      padding: 2rem;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    
+    .audit-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .input-wrapper {
+      display: flex;
+      gap: 1rem;
+      align-items: stretch;
+    }
+    
+    .audit-url-input {
+      flex: 1;
+      padding: 1rem;
+      font-size: 1rem;
+      border: 2px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      transition: all var(--transition-fast);
+    }
+    
+    .audit-url-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.1);
+    }
+    
+    .audit-submit-btn {
+      white-space: nowrap;
+    }
+    
+    .input-hint {
+      font-size: 0.875rem;
+      color: var(--text-tertiary);
+      margin: 0;
+    }
+    
+    .results-section {
+      padding: 3rem 0;
+    }
+    
+    .audit-results-container {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    
+    .results-header-section {
+      background: white;
+      padding: 2rem;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-light);
+    }
+    
+    .report-time {
+      font-size: 0.875rem;
+      color: var(--text-tertiary);
+      margin: 0 0 0.5rem;
+    }
+    
+    .results-url {
+      font-size: 1.5rem;
+      margin: 0 0 0.5rem;
+      color: var(--text-primary);
+      word-break: break-all;
+    }
+    
+    .results-tagline {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+    
+    .results-summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+    
+    .score-display, .progress-display {
+      background: white;
+      padding: 2rem;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-light);
+    }
+    
+    .score-description {
+      margin-top: 1.5rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      text-align: center;
+    }
+    
+    .category-scores {
+      margin-top: 2rem;
+    }
+    
+    .category-scores h4 {
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+    
+    .category-score-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem;
+      border-bottom: 1px solid var(--border-light);
+    }
+    
+    .category-score-item:last-child {
+      border-bottom: none;
+    }
+    
+    .category-name {
+      flex: 1;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    
+    .category-score {
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    
+    .category-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    
+    .badge-success {
+      background: rgba(16, 185, 129, 0.1);
+      color: #10B981;
+    }
+    
+    .badge-warning {
+      background: rgba(245, 158, 11, 0.1);
+      color: #F59E0B;
+    }
+    
+    .issues-section {
+      margin: 2rem 0;
+    }
+    
+    .detailed-results-section {
+      background: white;
+      padding: 2rem;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-light);
+    }
+    
+    .detailed-results-section h3 {
+      margin-bottom: 0.5rem;
+    }
+    
+    .section-description {
+      color: var(--text-tertiary);
+      margin-bottom: 2rem;
+    }
+    
+    .test-results-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .results-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      padding: 2rem 0;
+    }
+    
+    @media (max-width: 768px) {
+      .results-summary-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .input-wrapper {
+        flex-direction: column;
+      }
+      
+      .audit-submit-btn {
+        width: 100%;
+      }
+    }
+    
+    @media print {
+      .header, .footer, .hero-section, .results-actions {
+        display: none;
+      }
+    }
+    </style>
+  `;
+
+  document.head.insertAdjacentHTML('beforeend', pageStyles);
+
+  // Initialize auditor
+  const auditor = new SEOAuditor();
+
+  // Handle form submission
+  const form = document.getElementById('audit-form');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const url = document.getElementById('url-input').value.trim();
+    await auditor.auditURL(url);
+  });
+
+  // Check if URL parameter exists (for direct links)
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlToAudit = urlParams.get('url');
+  if (urlToAudit) {
+    document.getElementById('url-input').value = urlToAudit;
+    auditor.auditURL(urlToAudit);
+  }
+});

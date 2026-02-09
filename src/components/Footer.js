@@ -4,15 +4,15 @@
  */
 
 export function createFooter() {
-    const currentYear = new Date().getFullYear();
+  const currentYear = new Date().getFullYear();
 
-    return `
+  return `
     <footer class="site-footer">
       <div class="container">
         <div class="footer-content">
           <div class="footer-section">
-            <h3 class="footer-title">SEO Tools Suite</h3>
-            <p class="footer-desc">Free, fast, and powerful SEO tools to optimize your website for search engines.</p>
+            <h3 class="footer-title">AuditBreeze</h3>
+            <p class="footer-desc">Professional SEO auditing and optimization tools suite. Built for speed and accuracy.</p>
           </div>
           
           <div class="footer-section">
@@ -44,7 +44,7 @@ export function createFooter() {
         </div>
         
         <div class="footer-bottom">
-          <p>&copy; ${currentYear} SEO Tools Suite. All rights reserved.</p>
+          <p>&copy; ${currentYear} AuditBreeze. All rights reserved.</p>
           <p class="footer-credit">Built with ❤️ for better SEO</p>
         </div>
       </div>

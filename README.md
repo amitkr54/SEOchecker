@@ -1,4 +1,4 @@
-# SEO Tools Suite
+# AuditBreeze
 
 A modern, fast, and free collection of SEO tools built with Vite and Vanilla JavaScript.
 
@@ -34,7 +34,7 @@ npm run preview
 ## 🏗️ Project Structure
 
 ```
-seo-tools/
+auditbreeze/
 ├── src/
 │   ├── components/        # Reusable components
 │   │   ├── Header.js
@@ -147,4 +147,4 @@ MIT License - feel free to use for your projects!
 
 ---
 
-Built with ❤️ for better SEO
+Built with ❤️ by AuditBreeze

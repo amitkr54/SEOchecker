@@ -1,6 +1,6 @@
 /**
  * Main Homepage JavaScript
- * SEO Tools Suite
+ * AuditBreeze
  */
 
 import './styles/main.css';
@@ -8,13 +8,28 @@ import { createHeader, initHeader, headerStyles } from './components/Header.js';
 import { createFooter, footerStyles } from './components/Footer.js';
 import { createAdUnit, adStyles } from './components/AdUnit.js';
 import { createToolCard, toolCardStyles } from './components/ToolCard.js';
+import { circularIconStyles } from './components/CircularIconBadge.js';
 
 // Tools data
 const tools = [
   {
+    title: 'Comprehensive SEO Audit',
+    description: 'Analyze your website with 50+ SEO checks. Get detailed insights on meta tags, performance, security, mobile-friendliness, and more.',
+    icon: '🔍',
+    iconCircular: true,
+    link: '/src/tools/seo-audit/',
+    category: 'Complete Analysis',
+    features: [
+      '50+ comprehensive SEO checks',
+      'Detailed test results with priorities',
+      'Category breakdown and scores'
+    ]
+  },
+  {
     title: 'Schema Markup Validator',
     description: 'Validate and test your JSON-LD structured data for errors. Ensure search engines can properly understand your content.',
     icon: '📋',
+    iconCircular: true,
     link: '/src/tools/schema-validator/',
     category: 'Technical SEO',
     features: [
@@ -27,6 +42,7 @@ const tools = [
     title: 'Core Web Vitals Checker',
     description: 'Analyze your website\'s Core Web Vitals (LCP, FID, CLS) using Google\'s API. Get actionable optimization tips.',
     icon: '📊',
+    iconCircular: true,
     link: '/src/tools/core-web-vitals/',
     category: 'Performance',
     features: [
@@ -39,6 +55,7 @@ const tools = [
     title: 'Image Alt Text Checker',
     description: 'Scan your web pages for images missing alt text. Improve accessibility and SEO with proper image descriptions.',
     icon: '🖼️',
+    iconCircular: true,
     link: '/src/tools/alt-text-checker/',
     category: 'Accessibility',
     features: [
@@ -58,6 +75,7 @@ function initPage() {
   document.head.insertAdjacentHTML('beforeend', footerStyles);
   document.head.insertAdjacentHTML('beforeend', adStyles);
   document.head.insertAdjacentHTML('beforeend', toolCardStyles);
+  document.head.insertAdjacentHTML('beforeend', circularIconStyles);
 
   // Build page content
   app.innerHTML = `
@@ -136,7 +154,7 @@ function initPage() {
       <section id="about" class="about-section section">
         <div class="container container-md">
           <div class="about-content card-solid text-center">
-            <h2>About SEO Tools Suite</h2>
+            <h2>About AuditBreeze</h2>
             <p>
               Our mission is to make professional SEO tools accessible to everyone. 
               Whether you're a seasoned SEO expert or just starting out, our tools 

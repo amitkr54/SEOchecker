@@ -55,7 +55,7 @@ function initPage() {
                     
                     <div class="input-group">
                         <label for="ogSiteName" class="label">Site Name</label>
-                        <input type="text" id="ogSiteName" class="input" placeholder="e.g., SEO Tools Suite" />
+                        <input type="text" id="ogSiteName" class="input" placeholder="e.g., AuditBreeze" />
                     </div>
                     
                     <div class="input-group">

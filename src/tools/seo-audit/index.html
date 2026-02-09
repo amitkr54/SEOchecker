@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuditBreeze - Website SEO Audit Tool</title>
+    <meta name="description"
+        content="Free comprehensive SEO audit tool. Analyze your website for 50+ SEO factors including meta tags, performance, mobile-friendliness, and security.">
+    <link rel="stylesheet" href="../../styles/main.css">
+</head>
+
+<body>
+    <div id="app">
+        <!-- Header Placeholder -->
+        <div id="header-placeholder"></div>
+
+        <!-- Main Content -->
+        <main class="audit-page">
+            <!-- Hero Section -->
+            <section class="hero-header">
+                <div class="hero-bg-accent"></div>
+                <div class="container container-md text-center">
+                    <h1 class="hero-title">Free Website<br>SEO Audit Tool</h1>
+                    <p class="hero-subtitle">
+                        Instantly analyze your website's health with our smart SEO checker.
+                        Identify critical issues and get a step-by-step action plan to rank higher.
+                    </p>
+
+                    <!-- Large URL Input Form -->
+                    <div class="audit-input-container">
+                        <form id="audit-form" class="audit-form-v2">
+                            <div class="input-v2">
+                                <span class="input-icon">🔍</span>
+                                <input type="url" id="url-input" class="audit-input-field"
+                                    placeholder="Enter your website URL (e.g., https://example.com)" required
+                                    pattern="https?://.+">
+                                <button type="submit" class="btn-audit-main">
+                                    Analyze Website
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Trusted / Featured Row -->
+                    <div class="feature-pills">
+                        <div class="feature-pill">
+                            <span class="pill-icon">📝</span>
+                            <span>Content</span>
+                        </div>
+                        <div class="feature-pill">
+                            <span class="pill-icon">🔑</span>
+                            <span>Keywords</span>
+                        </div>
+                        <div class="feature-pill">
+                            <span class="pill-icon">🛡️</span>
+                            <span>Security</span>
+                        </div>
+                        <div class="feature-pill">
+                            <span class="pill-icon">🌐</span>
+                            <span>Networking</span>
+                        </div>
+                        <div class="feature-pill">
+                            <span class="pill-icon">🏢</span>
+                            <span>Domain</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Loading State -->
+            <div id="loading" class="loading-overlay hidden">
+                <div class="progress-container-v2">
+                    <div class="progress-bar-v2">
+                        <div id="progress-fill" class="progress-fill-v2" style="width: 0%"></div>
+                        <span id="progress-text" class="progress-text-v2">Evaluating Website - 0% Complete</span>
+                    </div>
+                </div>
+                <p id="loading-status">Analyzing website architecture...</p>
+            </div>
+
+            <!-- Results Section -->
+            <section id="results-section" class="results-section hidden">
+                <div class="container">
+                    <div id="audit-results"></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="container">
+                <p>&copy; 2026 AuditBreeze. Free tools for better SEO.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script type="module" src="./script.js"></script>
+</body>
+
+</html>
