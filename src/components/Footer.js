@@ -18,9 +18,9 @@ export function createFooter() {
           <div class="footer-section">
             <h4 class="footer-heading">Tools</h4>
             <ul class="footer-links">
-              <li><a href="/src/tools/schema-validator/">Schema Validator</a></li>
-              <li><a href="/src/tools/core-web-vitals/">Core Web Vitals</a></li>
-              <li><a href="/src/tools/alt-text-checker/">Alt Text Checker</a></li>
+              <li><a href="/schema-validator/">Schema Validator</a></li>
+              <li><a href="/core-web-vitals/">Core Web Vitals</a></li>
+              <li><a href="/alt-text-checker/">Alt Text Checker</a></li>
             </ul>
           </div>
           

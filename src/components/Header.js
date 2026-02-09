@@ -11,17 +11,17 @@ export function createHeader() {
   ];
 
   const toolLinks = [
-    { name: 'SEO Audit', path: '/src/tools/seo-audit/' },
-    { name: 'Schema Validator', path: '/src/tools/schema-validator/' },
-    { name: 'Core Web Vitals', path: '/src/tools/core-web-vitals/' },
-    { name: 'Alt Text Checker', path: '/src/tools/alt-text-checker/' },
-    { name: 'Meta Tag Gen', path: '/src/tools/meta-description-generator/' },
-    { name: 'Keyword Density', path: '/src/tools/keyword-density-checker/' },
-    { name: 'Canonical Check', path: '/src/tools/canonical-url-checker/' },
-    { name: 'OG Generator', path: '/src/tools/open-graph-generator/' },
-    { name: 'Speed Test', path: '/src/tools/website-speed-test/' },
-    { name: 'Favicon Gen', path: '/src/tools/favicon-generator/' },
-    { name: 'Robots.txt Gen', path: '/src/tools/robots-txt-generator/' },
+    { name: 'SEO Audit', path: '/seo-audit/' },
+    { name: 'Schema Validator', path: '/schema-validator/' },
+    { name: 'Core Web Vitals', path: '/core-web-vitals/' },
+    { name: 'Alt Text Checker', path: '/alt-text-checker/' },
+    { name: 'Meta Tag Gen', path: '/meta-description-generator/' },
+    { name: 'Keyword Density', path: '/keyword-density-checker/' },
+    { name: 'Canonical Check', path: '/canonical-url-checker/' },
+    { name: 'OG Generator', path: '/open-graph-generator/' },
+    { name: 'Speed Test', path: '/website-speed-test/' },
+    { name: 'Favicon Gen', path: '/favicon-generator/' },
+    { name: 'Robots.txt Gen', path: '/robots-txt-generator/' },
   ];
 
   const isToolActive = toolLinks.some(link => currentPath.includes(link.path));
